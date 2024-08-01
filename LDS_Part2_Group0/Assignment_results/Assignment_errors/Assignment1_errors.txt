@@ -1,0 +1,1 @@
+state,total_gravity,stolen_gravity,ErrorCode,ErrorColumn
