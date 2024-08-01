@@ -1,0 +1,38 @@
+-- [ASSIGNMENT 1] Show the total crime gravity for each city and the grand total with respect to the state.
+WITH 
+  MEMBER grand_total AS 
+   ([Geography].[StateCity].currentmember.parent, [Measures].[Crime Gravity])
+
+SELECT {[Measures].[Crime Gravity], grand_total} ON COLUMNS,
+	([Geography].[State].[State],[Geography].[StateCity].[City]) ON ROWS
+FROM [Group ID 0 DB];
+
+-- [ASSIGNMENT 2] Show the percentage increase or decrease in total crime gravity answers with respect to the previous year for each age group.
+WITH 
+	MEMBER prev_year AS 
+	(PARALLELPERIOD ([Dates].[DayMonthQuarterYear].[Year],1,[Dates].[DayMonthQuarterYear].currentmember), [Measures].[Crime Gravity])
+  
+	MEMBER difference AS
+	[Measures].[Crime Gravity] - prev_year
+	
+	MEMBER perc_change AS
+	IIF (prev_year = 0, 0, (difference / prev_year)),
+	format_string = "percent"
+
+SELECT
+	perc_change ON COLUMNS,
+	nonempty(ORDER ( ([Dates].[DayMonthQuarterYear].[Year],[Partecipants].[Age Group].[Age Group]),perc_change, BDESC )) ON ROWS
+FROM [Group ID 0 DB];
+
+-- [ASSIGNMENT 3] Show the ratio between the total crime gravity of each year w.r.t the previous year
+
+WITH 
+	MEMBER ratio AS
+	IIF([Dates].[DayMonthQuarterYear].currentmember.prevmember IS NULL, 0, 
+    ([Dates].[DayMonthQuarterYear].currentmember, 
+    [Measures].[Crime Gravity])/([Dates].[DayMonthQuarterYear].currentmember.lag(1), 
+    [Measures].[Crime Gravity]))
+
+SELECT ratio ON COLUMNS,
+  nonempty([Dates].[DayMonthQuarterYear].[Year]) ON ROWS
+FROM [Group ID 0 DB]; 
